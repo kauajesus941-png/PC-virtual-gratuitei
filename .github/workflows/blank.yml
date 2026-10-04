@@ -1,0 +1,46 @@
+name: Windows Virtual Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Ver informações da máquina
+        shell: pwsh
+        run: |
+          Write-Host "=== SISTEMA ==="
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsArchitecture
+
+          Write-Host "=== CPU ==="
+          Get-CimInstance Win32_Processor |
+            Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
+
+          Write-Host "=== MEMÓRIA ==="
+          Get-CimInstance Win32_ComputerSystem |
+            Select-Object @{Name="RAM_GB";Expression={[math]::Round($_.TotalPhysicalMemory / 1GB, 2)}}
+
+          Write-Host "=== DISCO ==="
+          Get-PSDrive C |
+            Select-Object Used, Free
+
+      - name: Instalar ferramentas
+        shell: pwsh
+        run: |
+          winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements
+
+      - name: Teste
+        shell: pwsh
+        run: |
+          Write-Host "Build iniciado..."
+          Write-Host "Runner Windows funcionando!"
+
+      - name: Finalizar
+        shell: pwsh
+        run: |
+          Write-Host "Build concluído."
